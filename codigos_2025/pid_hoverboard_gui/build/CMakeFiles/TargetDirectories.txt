@@ -1,0 +1,5 @@
+/home/sarah/Documentos/HOME/remy/firmware/pid_hoverboard_gui/build/CMakeFiles/PID_Hoverboard_GUI.dir
+/home/sarah/Documentos/HOME/remy/firmware/pid_hoverboard_gui/build/CMakeFiles/edit_cache.dir
+/home/sarah/Documentos/HOME/remy/firmware/pid_hoverboard_gui/build/CMakeFiles/rebuild_cache.dir
+/home/sarah/Documentos/HOME/remy/firmware/pid_hoverboard_gui/build/CMakeFiles/PID_Hoverboard_GUI_autogen_timestamp_deps.dir
+/home/sarah/Documentos/HOME/remy/firmware/pid_hoverboard_gui/build/CMakeFiles/PID_Hoverboard_GUI_autogen.dir

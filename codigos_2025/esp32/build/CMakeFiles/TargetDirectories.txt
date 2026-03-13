@@ -1,0 +1,4 @@
+/home/sarah/Documentos/HOME/remy/firmware/esp32/build/CMakeFiles/PID_Hoverboard_GUI.dir
+/home/sarah/Documentos/HOME/remy/firmware/esp32/build/CMakeFiles/edit_cache.dir
+/home/sarah/Documentos/HOME/remy/firmware/esp32/build/CMakeFiles/rebuild_cache.dir
+/home/sarah/Documentos/HOME/remy/firmware/esp32/build/CMakeFiles/PID_Hoverboard_GUI_autogen.dir
