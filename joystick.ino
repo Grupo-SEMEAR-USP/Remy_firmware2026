@@ -4,8 +4,8 @@
 
 // Usar a entrada Brake do ZS-X11H? -- X = 0x0001 e R2 = 0x0080
 
-// Esse código controla dois motores BLDC por meio de um controle genérico (compatibilidade na documentação do Bluepad32), acelerando para frente e para trás
-// por meio do analógico esquerdo e se move para direita e esquerda por meio do analógico direito. Além disso, calculando a RPM dos motores no processo.
+/* Esse código controla dois motores BLDC por meio de um controle genérico (compatibilidade na documentação do Bluepad32), acelerando para frente e para trás
+por meio do analógico esquerdo e se move para direita e esquerda por meio do analógico direito. Além disso, calculando a RPM dos motores no processo. */
 
 
 // ************************ Variáveis **************************** //
@@ -23,18 +23,18 @@ const int PIN_Ha_1 = 18;
 const int PIN_Hb_1 = 19;
 const int PIN_Hc_1 = 21;
 // Direção
-const int PIN_DIR_1 = 23;
+const int PIN_DIR_1 = 32;
 
 // Pinos do motor 2 na ESP-32
 
 // PWM
-const int PIN_PWM_2 = 32;
+const int PIN_PWM_2 = 13;
 // Encoder
 const int PIN_Ha_2 = 25;
 const int PIN_Hb_2 = 26;
 const int PIN_Hc_2 = 27;
 // Direção
-const int PIN_DIR_2 = 13;
+const int PIN_DIR_2 = 33;
 
 // Variáveis de leitura do estado atual do sensor hall do motor 1
 
@@ -60,27 +60,21 @@ std::string R2;
 
 // Variáveis de armazenamento do motor 1
 
-volatile int sentido1 = 1;
-volatile int Pulsos1 = 0;
+volatile int sentido1 = 0;
 
 // Variáveis de armazenamento do motor 2
 
 volatile int sentido2 = 1;
-volatile int Pulsos2 = 0;
 
 // Variáveis de interrupções do motor 1
 
 volatile unsigned long tempo_prev1 = 0; // Marca o tempo de início da interrupção prévia
 volatile unsigned long tempo_Ha1 = 100; // Guarda o tempo de duração de um pulso do Hall A
-volatile unsigned long tempo_Hb1 = 100; // Guarda o tempo de duração de um pulso do Hall B
-volatile unsigned long tempo_Hc1 = 100; // Guarda o tempo de duração de um pulso do Hall C
 
 // Variáveis de interrupções do motor 2
 
 volatile unsigned long tempo_prev2 = 0; // Marca o tempo de início da interrupção prévia
 volatile unsigned long tempo_Ha2 = 100; // Guarda o tempo de duração de um pulso do Hall A
-volatile unsigned long tempo_Hb2 = 100; // Guarda o tempo de duração de um pulso do Hall B
-volatile unsigned long tempo_Hc2 = 100; // Guarda o tempo de duração de um pulso do Hall C
 
 // Variáveis de leitura do motor 1
 
@@ -105,39 +99,10 @@ void IRAM_ATTR HS_A1() {
   Ha1_Val = digitalRead(PIN_Ha_1); // Lê o estado atual do Hall Sensor A (High ou Low) definido como bool
   Hb1_Val = digitalRead(PIN_Hb_1); // Lê o estado atual do Hall Sensor B (High ou Low) definido como bool
   sentido1 = (Ha1_Val == Hb1_Val) ? H : AH; // Determina o sentido de rotação (Horário ou Anti-Horário) por meio de uma sentencia ternária
-  Pulsos1 = Pulsos1 + (1 * sentido1); // Define a quantidade de pulsos em relação ao sentido de giro
 
   unsigned long delta = tempo_ini - tempo_prev1; // Intervalo de segurança entre os pulsos
   if (delta > 5 && delta < 5000) {
     tempo_Ha1 = delta; // tempo do pulso do Hall Sensor A
-  }
-  tempo_prev1 = tempo_ini; // Marca o tempo atual como tempo prévio, preparando para a próxima iteração
-}
-
-void IRAM_ATTR HS_B1() {
-  unsigned long tempo_ini = millis(); // Usa o contador interno da esp32 para cronometrar o tempo inicial da contagem
-  Hb1_Val = digitalRead(PIN_Hb_1); // Lê o estado atual do Hall Sensor B (High ou Low) definido como bool
-  Hc1_Val = digitalRead(PIN_Hc_1); // Lê o estado atual do Hall Sensor C (High ou Low) definido como bool
-  sentido1 = (Hb1_Val == Hc1_Val) ? H : AH; // Determina o sentido de rotação (Horário ou Anti-Horário) por meio de uma sentencia ternária
-  Pulsos1 = Pulsos1 + (1 * sentido1); // Define a quantidade de pulsos em relação ao sentido de giro
-
-  unsigned long delta = tempo_ini - tempo_prev1; // Intervalo de segurança entre os pulsos
-  if (delta > 5 && delta < 5000) {
-    tempo_Hb1 = delta; // tempo do pulso do Hall Sensor A
-  }
-  tempo_prev1 = tempo_ini; // Marca o tempo atual como tempo prévio, preparando para a próxima iteração
-}
-
-void IRAM_ATTR HS_C1() {
-  unsigned long tempo_ini = millis(); // Usa o contador interno da esp32 para cronometrar o tempo inicial da contagem
-  Hc1_Val = digitalRead(PIN_Hc_1); // Lê o estado atual do Hall Sensor C (High ou Low) definido como bool
-  Ha1_Val = digitalRead(PIN_Ha_1); // Lê o estado atual do Hall Sensor A (High ou Low) definido como bool
-  sentido1 = (Hc1_Val == Ha1_Val) ? H : AH; // Determina o sentido de rotação (Horário ou Anti-Horário) por meio de uma sentencia ternária
-  Pulsos1 = Pulsos1 + (1 * sentido1); // Define a quantidade de pulsos em relação ao sentido de giro
-
-  unsigned long delta = tempo_ini - tempo_prev1; // Intervalo de segurança entre os pulsos
-  if (delta > 5 && delta < 5000) {
-    tempo_Hc1 = delta; // tempo do pulso do Hall Sensor A
   }
   tempo_prev1 = tempo_ini; // Marca o tempo atual como tempo prévio, preparando para a próxima iteração
 }
@@ -149,39 +114,10 @@ void IRAM_ATTR HS_A2() {
   Ha2_Val = digitalRead(PIN_Ha_2); // Lê o estado atual do Hall Sensor A (High ou Low) definido como bool
   Hb2_Val = digitalRead(PIN_Hb_2); // Lê o estado atual do Hall Sensor B (High ou Low) definido como bool
   sentido2 = (Ha2_Val == Hb2_Val) ? H : AH; // Determina o sentido de rotação (Horário ou Anti-Horário) por meio de uma sentencia ternária
-  Pulsos2 = Pulsos2 + (1 * sentido2); // Define a quantidade de pulsos em relação ao sentido de giro
 
   unsigned long delta = tempo_ini - tempo_prev2; // Intervalo de segurança entre os pulsos
   if (delta > 5 && delta < 5000) {
     tempo_Ha2 = delta; // tempo do pulso do Hall Sensor A
-  }
-  tempo_prev2 = tempo_ini; // Marca o tempo atual como tempo prévio, preparando para a próxima iteração
-}
-
-void IRAM_ATTR HS_B2() {
-  unsigned long tempo_ini = millis(); // Usa o contador interno da esp32 para cronometrar o tempo inicial da contagem
-  Hb2_Val = digitalRead(PIN_Hb_2); // Lê o estado atual do Hall Sensor B (High ou Low) definido como bool
-  Hc2_Val = digitalRead(PIN_Hc_2); // Lê o estado atual do Hall Sensor C (High ou Low) definido como bool
-  sentido2 = (Hb2_Val == Hc2_Val) ? H : AH; // Determina o sentido de rotação (Horário ou Anti-Horário) por meio de uma sentencia ternária
-  Pulsos2 = Pulsos2 + (1 * sentido2); // Define a quantidade de pulsos em relação ao sentido de giro
-
-  unsigned long delta = tempo_ini - tempo_prev2; // Intervalo de segurança entre os pulsos
-  if (delta > 5 && delta < 5000) {
-    tempo_Hb2 = delta; // tempo do pulso do Hall Sensor A
-  }
-  tempo_prev2 = tempo_ini; // Marca o tempo atual como tempo prévio, preparando para a próxima iteração
-}
-
-void IRAM_ATTR HS_C2() {
-  unsigned long tempo_ini = millis(); // Usa o contador interno da esp32 para cronometrar o tempo inicial da contagem
-  Hc2_Val = digitalRead(PIN_Hc_2); // Lê o estado atual do Hall Sensor C (High ou Low) definido como bool
-  Ha2_Val = digitalRead(PIN_Ha_2); // Lê o estado atual do Hall Sensor A (High ou Low) definido como bool
-  sentido2 = (Hc2_Val == Ha2_Val) ? H : AH; // Determina o sentido de rotação (Horário ou Anti-Horário) por meio de uma sentencia ternária
-  Pulsos2 = Pulsos2 + (1 * sentido2); // Define a quantidade de pulsos em relação ao sentido de giro
-
-  unsigned long delta = tempo_ini - tempo_prev2; // Intervalo de segurança entre os pulsos
-  if (delta > 5 && delta < 5000) {
-    tempo_Hc2 = delta; // tempo do pulso do Hall Sensor A
   }
   tempo_prev2 = tempo_ini; // Marca o tempo atual como tempo prévio, preparando para a próxima iteração
 }
@@ -194,14 +130,12 @@ int estadoManobra = 0; // 0: Inativo, 1: Curva Direita, 2: Curva Esquerda
 // ************************************ Função de Setup ************************************ //
 
 
-void setup() {
-  Serial.begin(115200); // 9600????????????????????
+  void setup() {
+  Serial.begin(115200);
   Serial.println("Iniciando o programa...");
 
   BP32.setup(&onConnectedController, &onDisconnectedController);
   BP32.forgetBluetoothKeys();
-
-  // Setup pinos sensor hall
 
   pinMode(PIN_Ha_1, INPUT);
   pinMode(PIN_Hb_1, INPUT);
@@ -227,14 +161,10 @@ void setup() {
   // Configuração de interrupção por bordas de subida e descida do motor 1
 
   attachInterrupt(digitalPinToInterrupt(PIN_Ha_1), HS_A1, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(PIN_Hb_1), HS_B1, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(PIN_Hc_1), HS_C1, CHANGE);
 
   // Configuração de interrupção por bordas de subida e descida do motor 2
 
   attachInterrupt(digitalPinToInterrupt(PIN_Ha_2), HS_A2, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(PIN_Hb_2), HS_B2, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(PIN_Hc_2), HS_C2, CHANGE);
 
   Serial.println("Programa iniciado!");
 }
@@ -314,9 +244,8 @@ void loop(){
   if (now - tempo_prev1 > 600) {
     RPM1 = 0;
   } else{
-    float media = (tempo_Ha1 + tempo_Hb1 + tempo_Hc1) / 3.0;
-    if(media > 0) {
-      float PPM1 = (60000.0 / media); // Pulsos por minuto, calculamos para 1s (1000ms) e multiplicamos por 60 (1min)
+    if(tempo_Ha1 > 0) {
+      float PPM1 = (60000.0 / tempo_Ha1); // Pulsos por minuto, calculamos para 1s (1000ms) e multiplicamos por 60 (1min)
       RPM1 = PPM1 / 90.0; // 90 = PPR (pulsos por rotação) = n° de pares de polos do motor * 6, o motor do hover tem 15 pares de polos
     }
   }
@@ -324,16 +253,15 @@ void loop(){
   if (now - tempo_prev2 > 600) {
     RPM2 = 0;
   } else{
-    float media = (tempo_Ha2 + tempo_Hb2 + tempo_Hc2) / 3.0;
-    if(media > 0) {
-      float PPM2 = (60000.0 / media); // Pulsos por minuto, calculamos para 1s (1000ms) e multiplicamos por 60 (1min)
+    if(tempo_Ha2 > 0) {
+      float PPM2 = (60000.0 / tempo_Ha2); // Pulsos por minuto, calculamos para 1s (1000ms) e multiplicamos por 60 (1min)
       RPM2 = PPM2 / 90.0; // 90 = PPR (pulsos por rotação) = n° de pares de polos do motor * 6, o motor do hover tem 15 pares de polos
     }
   }
 
   // Print do sentido de rotação dos motores, sentido = 1 ==> Horário, sentido = -1 ==> Anti-horário (Para o motor 2 é invertido)
 
-  if(sentido1 == 0) {R1 = "Horário";}
+  if(sentido1 == -1) {R1 = "Horário";}
   else {R1 = "Anti-Horário";}
 
   if(sentido2 == 1) {R2 = "Horário";}
